@@ -11,6 +11,7 @@ SOURCES=Definition.f90 \
 	WENO_Module.f90 \
 	PPM_Module.f90 \
 	MP5_Module.f90 \
+	PPT_module.f90 \
 	Main.f90 \
 	AlphaSplit.f90 \
 	Boundary1D.f90 \
@@ -93,6 +94,9 @@ Neutrino.mod: Neutrino_module.f90
 Nuspec.mod: NuSpec_module.f90
 	$(F90) -C NuSpec_module.f90
 
+PPT.mod: PPT_module.f90
+	$(F90) -C PPT_module.f90
+
 clean:
 	rm -rf Definition
 	rm -rf *.o 	
@@ -104,9 +108,11 @@ cleanpic:
 	rm -rf ./Plot/Isotope/*.png
 	rm -rf ./Plot/Level-Set/*.png
 	rm -rf ./Plot/Neutrino/*.png
+	rm -rf ./Plot/Tracer/*.png
 cleanfile:
 	rm -rf ./Outfile/Flame/*.dat
 	rm -rf ./Outfile/Hydro/*.dat
 	rm -rf ./Outfile/Isotope/*.dat
 	rm -rf ./Outfile/Level-Set/*.dat
 	rm -rf ./Outfile/Neutrino/*.dat
+	rm -rf ./Outfile/Tracer/*.dat

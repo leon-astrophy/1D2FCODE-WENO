@@ -10,6 +10,7 @@ USE NUCLEAR_MODULE
 USE FLAME_MODULE
 USE ECAPTABLE_MODULE
 USE NU_MODULE
+USE PPT_MODULE
 IMPLICIT NONE
 
 ! Integer parameter !
@@ -92,6 +93,13 @@ If(nuspec_flag == 1) THEN
 	call BUILDNU
 END IF
 
+IF(tracer_flag == 1) THEN
+   WRITE(*,*) 'Build PPT variables'
+   CALL buildPPT
+   WRITE(*,*) 'Done building PPT variables'
+   WRITE(*,*)
+ENDIF
+
 ! We build variables neccessary for the deflagration !
 IF(flame_flag == 1) THEN
 	WRITE(*,*) 'Build flame variables'
@@ -111,11 +119,9 @@ END IF
 
 ! Nse table !
 IF(convert_nse_flag == 1) THEN
-	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	!WRITE(*,*) 'Read NSE Table'
-	!CALL read_nse_table
-	!WRITE (*,*)
-	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	WRITE(*,*) 'Read NSE Table'
+	CALL read_nse_table
+	WRITE (*,*)
 	WRITE(*,*) 'Read Electron Capture Table'
 	CALL readEcapRate
 	WRITE (*,*)
@@ -309,6 +315,14 @@ CALL FROMRVETOU (u_new1, u_new2)
 CALL BACKUPCONS (u_new1, u_old1, u_new2, u_old2)
 WRITE(*,*) 'Done building initial conservative variables'
 WRITE (*,*)
+
+! Prepare tracer particle scheme
+IF(tracer_flag == 1) THEN 
+   WRITE(*,*) 'Do getppt'
+   CALL getppt
+   WRITE(*,*) 'Done getppt'
+   WRITE(*,*)
+ENDIF
 
 ! Write finish message !
 WRITE(*,*) 'Finish initial...'

@@ -65,7 +65,7 @@ INTEGER	:: length_step_part_2 = length_step_2
 REAL (DP) :: cfl = 2.0E-1_DP
 
 ! Physical time (dimensionless) that stop the program !
-REAL (DP) :: total_time = 3.0D5
+REAL (DP) :: total_time = 4.0D5
 
 ! Physical time (dimensionless) interval for each output !	
 REAL (DP), PARAMETER :: output_time = 1.0E2_DP
@@ -238,7 +238,7 @@ INTEGER, PARAMETER :: sp_dim_i = 2
 
 ! Presence of gravity. 1 = present of gravity if sp_dim_i = 2. 0 = absent of gravity if sp_sim_i = 2 !
 ! CAUTION : w_gravity_i MUST be set to 0 if sp_dim_i = 0 or 1 !
-INTEGER, PARAMETER :: w_gravity_i = 0
+INTEGER, PARAMETER :: w_gravity_i = 1
 
 ! Accuracy of the initial date if it is generated !
 ! (Do NOT change this unless you know what you are doing) !
@@ -266,10 +266,10 @@ REAL (DP), PARAMETER :: tolerance = 3.0E-8_DP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! 0 = Choose not to solve NM energy equation !
-INTEGER, PARAMETER :: nm_epsilon = 0
+INTEGER, PARAMETER :: nm_epsilon = 1
 
 ! 0 = Choose not to solve NM  equation !
-INTEGER, PARAMETER :: dual_energy = 0
+INTEGER, PARAMETER :: dual_energy = 1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control the reconstruction method and its variants !
@@ -368,25 +368,36 @@ INTEGER, PARAMETER :: outputpotential = 0
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! 1 = allow a propagation of deflagration and nuclear reaction !
-INTEGER, PARAMETER :: fusion_flag = 0
+INTEGER, PARAMETER :: fusion_flag = 1
 
 ! 1 = allow a transition to detonation !
-INTEGER, PARAMETER :: deton_flag = 0
+INTEGER, PARAMETER :: deton_flag = 1
 
 ! 1 = allow a the three step burning progress !
-INTEGER, PARAMETER :: flame_flag = 0
+INTEGER, PARAMETER :: flame_flag = 1
 
 ! Flag for allowing 1st step burning input for level set 1 & 2
 ! 1 = Allow energy input by carbon burning
-INTEGER, PARAMETER :: carburn_flag = 0
+INTEGER, PARAMETER :: carburn_flag = 1
 
 ! Flag for allowing 2nd step burning input for level set 1 & 2
 ! 1 = Allow energy input by advanced burning
-INTEGER, PARAMETER :: advburn_flag = 0  
+INTEGER, PARAMETER :: advburn_flag = 1  
  
 ! Flag for allowing final burning input for level set 1 & 2
 ! 1 = Allow energy input by NSE evolution
-INTEGER, PARAMETER :: convert_nse_flag = 0
+INTEGER, PARAMETER :: convert_nse_flag = 1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Section for tracer particles !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! 1 = With tracer particle to record the thermodynamics history
+INTEGER, PARAMETER :: tracer_flag = 0
+
+! Physical time interval for each tracer profiles
+REAL (DP) :: output_PPTtime = 2.5D3				
+REAL (DP) :: output_PPTtime_last = 0.0D0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Section for more frequent output of profile after DDT !
@@ -404,11 +415,11 @@ REAL (DP) :: output_ddt_last = 0.0D0
 INTEGER, PARAMETER :: nuspec_flag = 0
 
 ! 1 = allow variable and advection of chemical composition !
-INTEGER, PARAMETER :: xisotran_flag = 0
+INTEGER, PARAMETER :: xisotran_flag = 1
 
 ! Flag for allowing the electron fraction to be transported !
 ! 1 = Allow Ye to be advected
-INTEGER, PARAMETER :: etran_flag = 0
+INTEGER, PARAMETER :: etran_flag = 1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control the equation of state for DM and NM !
@@ -418,13 +429,13 @@ INTEGER, PARAMETER :: etran_flag = 0
 INTEGER, PARAMETER :: fermieosdm_flag = 1
 
 ! 1 = use Fermi Gas EOS For NM !
-INTEGER, PARAMETER :: fermieosnm_flag = 1
+INTEGER, PARAMETER :: fermieosnm_flag = 0
 
 ! 1 = use newtonian polytropic EOS For NM !
 INTEGER, PARAMETER :: newpolyeosnm_flag = 0
 
 ! 1 = use helmholtz EOS For NM !
-INTEGER, PARAMETER :: helmeos_flag = 0
+INTEGER, PARAMETER :: helmeos_flag = 1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Section for core collapse supernovae !

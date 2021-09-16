@@ -41,6 +41,10 @@ real (DP), allocatable, dimension (:) :: flame_qdot, deton_qdot, burn_qdot
 ! the integer required as determining extra conservative equation for levelset !
 INTEGER :: iscaG, iscaG2
 
+! Nuclear reaction density range
+real (DP), parameter :: rho2_burn_max = 1.0D7*density
+real (DP), parameter :: rho2_burn_min = 1.0D6*density
+
 ! Deflagration density range
 real (DP), parameter :: rho2_flame_max = 1.0D10*density 
 real (DP), parameter :: rho2_flame_min = 1.0D7*density
@@ -48,10 +52,6 @@ real (DP), parameter :: rho2_flame_min = 1.0D7*density
 ! Detonation density range
 real (DP), parameter :: rho2_deton_max = 1.0D9*density
 REAL (DP), parameter :: rho2_deton_min = 1.0D6*density 
-
-! Nuclear reaction density range
-real (DP), parameter :: rho2_burn_max = 1.0D10*density
-real (DP), parameter :: rho2_burn_min = 1.0D7*density
 
 ! Mass ash !
 REAL (DP) :: mass_ash
@@ -341,8 +341,7 @@ flame_ratio_old = 0.0D0
 m_defla = 0.02D0
 DO j = 1, length_step_2
 	If(m_cell(j) > m_defla) THEN
-		CALL AKIMA(m_cell(j-3), m_cell(j-2), m_cell(j-1), m_cell(j), m_cell(j+1), m_cell(j+2), & 
-		r2F(j-3), r2F(j-2), r2F(j-1), r2F(j), r2F(j+1), r2F(j+2), m_defla, x2) 
+		CALL LINEAR(m_cell(j-1), m_cell(j), r2F(j-1), r2F(j), m_defla, x2) 
 		EXIT
 	END IF
 END DO
@@ -407,8 +406,7 @@ deton_ratio = 0.0D0
 m_deton = 0.02D0
 DO j = 1, length_step_2
 	If(m_cell(j) > m_deton) THEN
-		CALL AKIMA(m_cell(j-3), m_cell(j-2), m_cell(j-1), m_cell(j), m_cell(j+1), m_cell(j+2), & 
-		r2F(j-3), r2F(j-2), r2F(j-1), r2F(j), r2F(j+1), r2F(j+2), m_deton, x2) 
+		CALL LINEAR(m_cell(j-1), m_cell(j), r2F(j-1), m_deton, x2) 
 		EXIT
 	END IF
 END DO
@@ -752,7 +750,7 @@ do j = 1, length_step_2
 	! Get the effective flame ratio !
 	! We dont allow flame_ratio to be reduced !
 	! I.e. Turning ash into fuel !
-	flame_ratio(j) = MAX(flame_ratio(j), flame_ratio_old(j))
+	flame_ratio(j) = MIN(MAX(flame_ratio(j), flame_ratio_old(j)), 1.0D0 - deton_ratio(j))
 
  	if(flame_ratio(j) == 0.0D0) then
 
@@ -913,8 +911,8 @@ if(deton_flag == 1 .AND. founddeton_flag == 0) then
 
 		! Plant the level set
                 do j = 1, length_step_2, 1   
-			dist1 = r2(j) - (r2(j_in) + 20.0D0)
-			dist2 = (r2(j_in) - 20.0D0) - r2(j)
+			dist1 = r2(j) - (r2(j_in) + 10.0D0)
+			dist2 = (r2(j_in) - 10.0D0) - r2(j)
                         scaG2(j) = max(dist1, dist2)
 		enddo
 
@@ -1233,7 +1231,7 @@ do j = 1, length_step_part_2
 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	if(x1 > 0.0D0 .and. rho_mid > rho2_flame_min .and. rho_mid < rho2_flame_max) then
 		flame_qdot(j) = flame_ene * x1
-		epsilon2 (j) = epsilon2(j) + flame_ene * x1
+		epsilon2 (j) = epsilon2(j) + flame_qdot(j)
 		xiso (:,j) = xiso (:,j) - x1 * x_fuel1(:) + x1 * x_ash1(:) 
 		burn_mass = burn_mass + x1 * rho_mid * vol_mid  
 	endif 
@@ -1328,7 +1326,7 @@ do j = 1, length_step_part_2
 	   
 			! Complete burning occurs
 			burn_qdot(j) = burn_ene1 * x1 + burn_ene2 * x2
-			epsilon2(j) = epsilon2(j) + burn_ene1 * x1 + burn_ene2 * x2
+			epsilon2(j) = epsilon2(j) + burn_qdot(j)
 			xiso(:,j) = x_mid(:) - x1 * x_fuel1(:) - x2 * x_fuel2(:) + (x1 + x2) * x_ash(:)
 
 			! If it is completely burnt, then go to the next burning phase
@@ -1336,10 +1334,10 @@ do j = 1, length_step_part_2
 
 		else
 
-			fnse =  -1.0604D0 * (dt / nqse_burntime)**2 + 2.0604D0 * (dt / nqse_burntime)**2
+			fnse =  -1.0604D0 * (dt / nqse_burntime)**2 + 2.0604D0 * (dt / nqse_burntime)
 			! InComplete burning occurs
 			burn_qdot(j) = (burn_ene1 * x1 + burn_ene2 * x2) * fnse
-			epsilon2(j) = epsilon2(j) + (burn_ene1 * x1 + burn_ene2 * x2) * fnse
+			epsilon2(j) = epsilon2(j) + burn_qdot(j)
 			xiso(:,j) = x_mid(:) + (-x1 * x_fuel1(:) - x2 * x_fuel2(:) + (x1 + x2) * x_ash(:)) * fnse
 			nse_flag(j) = 1
 
@@ -1374,7 +1372,7 @@ integer, PARAMETER :: imax = 5000
 REAL (DP), PARAMETER :: tor = 1.0D-12
 
 ! Dummy variables !
-real (DP) :: dummy, tempold
+real (DP) :: dummy, tempold, fnse
 
 ! Local variables !
 real (DP) :: abar_mid, zbar_mid, ye_mid, eps_old
@@ -1485,8 +1483,8 @@ do j = 1, length_step_part_2
 
 			! Now do the search
 			! Get the trial NSE state by the trial temp
-			!call getnsestate(rho_mid, temp_mid, x_burn)
-			call getnse(rho_mid, temp_mid, x_burn)				
+			call getnsestate(rho_mid, temp_mid, x_burn)
+			!call getnse(rho_mid, temp_mid, x_burn)				
 
 			! Compute the trial binding energy
 			call compute_binde(x_burn, binde_af)
@@ -1531,11 +1529,11 @@ do j = 1, length_step_part_2
 			END IF
 
 			! Check if the nse solver fail to converge or reached low temp !
-			if(i == imax .or. temp_mid < 5.0D0) then
+			if(i == imax .AND. temp_mid < 5.0D0) then
 				temp_mid = temp_beg        
 				eps_mid = eps_beg               
-				!call getnsestate(rho_mid, temp_mid, x_burn)
-				call getnse(rho_mid, temp_mid, x_burn)	
+				call getnsestate(rho_mid, temp_mid, x_burn)
+				!call getnse(rho_mid, temp_mid, x_burn)	
 				exit
 			endif            
 
@@ -1558,8 +1556,9 @@ do j = 1, length_step_part_2
 
 			! When things are partially done, use
 			! linear interpolation
-			temp_mid = temp_beg + (temp_mid - temp_beg) * dt / nse_burntime
-			x_burn (:) = x_mid (:) + (x_burn (:) - x_mid (:)) * dt / nse_burntime
+			fnse =  -1.0604D0 * (dt / nse_burntime)**2 + 2.0604D0 * (dt / nse_burntime)
+			temp_mid = temp_beg + (temp_mid - temp_beg) * fnse
+			x_burn (:) = x_mid (:) + (x_burn (:) - x_mid (:)) * fnse
 			call compute_binde(x_burn, binde_af)
 			call private_helmeos_azbar(x_burn, abar_mid, zbar_mid, dummy)	
 			call HELMEOS_RtoE(rho_mid, temp_mid, abar_mid, zbar_mid, ye_mid, eps_mid, dummy)	   
@@ -1702,12 +1701,12 @@ do j = 1, length_step_part_2
 		!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		! Scheme for electron capture
 		! Get the Ecap rate and energy loss
-		call getecaprate(rho_mid, temp_beg, ye2 (j), ecaprate_mid, eneurate_mid)
+		!call getecaprate(rho_mid, temp_beg, ye2 (j), ecaprate_mid, eneurate_mid)
 		! Update the Ye rate
 		! Note: No iteration is done here because
 		! the temperature sensitivity of Ecap
 		! rate is much smaller than NSE composition
-		ye_mid = ye2 (j) + ecaprate_mid * dt   
+		!ye_mid = ye2 (j) + ecaprate_mid * dt   
 		!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
 
 		! Compute the binding energy of the 
@@ -1723,13 +1722,13 @@ do j = 1, length_step_part_2
 		do i = 0, imax   
 
 			! My patch !
-			!call getecaprate(rho_mid, temp_mid, ye2 (j), ecaprate_mid, eneurate_mid)
-			!ye_mid = ye2 (j) + ecaprate_mid * dt
+			call getecaprate(rho_mid, temp_mid, ye2 (j), ecaprate_mid, eneurate_mid)
+			ye_mid = ye2 (j) + ecaprate_mid * dt
 
 			! Now do the search
 			! Get the trial NSE state by the trial temp
-			!call getnsestate(rho_mid, temp_mid, x_burn)
-			call getnse(rho_mid, temp_mid, x_burn)
+			call getnsestate(rho_mid, temp_mid, x_burn)
+			!call getnse(rho_mid, temp_mid, x_burn)
 			
 			! Compute the trial binding energy
 			call compute_binde(x_burn, binde_af)
@@ -1774,12 +1773,12 @@ do j = 1, length_step_part_2
 			END IF
 
 			! Check if the nse solver fail to converge or reached low temp !
-			if(i == imax .or. temp_mid < 5.0D0) then
-				WRITE (*,*) 'temp lower than 5GK'
+			if(i == imax .AND. temp_mid < 5.0D0) then
+				WRITE (*,*) 'temp lower than 5GK', i, imax
 				temp_mid = temp_beg        
 				eps_mid = eps_beg                 
-				!call getnsestate(rho_mid, temp_mid, x_burn)
-				call getnse(rho_mid, temp_mid, x_burn)	
+				call getnsestate(rho_mid, temp_mid, x_burn)
+				!call getnse(rho_mid, temp_mid, x_burn)	
 				exit
 			endif            
 
@@ -1802,7 +1801,7 @@ do j = 1, length_step_part_2
 
 			! When things are partially done, use
 			! linear interpolation
-			fnse =  -1.0604D0 * (dt / nse_burntime)**2 + 2.0604D0 * (dt / nse_burntime)**2
+			fnse =  -1.0604D0 * (dt / nse_burntime)**2 + 2.0604D0 * (dt / nse_burntime)
 			temp_mid = temp_beg + (temp_mid - temp_beg) * fnse
 			x_burn (:) = x_mid (:) + (x_burn (:) - x_mid (:)) * fnse
 			call compute_binde(x_burn, binde_af)

@@ -166,7 +166,7 @@ INTEGER :: i, j, k
 REAL (DP) :: dummy
 
 ! Open the nse table !
-!OPEN(unit=500, file='./Library/nse_table_7iso.dat',action='read')
+OPEN(unit=500, file='./Library/nse_table_7iso.dat',action='read')
 
 ! Now read the nse table !
 DO i = 0, den_rowno_nse, 1

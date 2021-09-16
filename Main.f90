@@ -8,7 +8,11 @@ USE DEFINITION
 USE NUCLEAR_MODULE
 USE NU_MODULE
 USE FLAME_MODULE
+USE PPT_MODULE
 IMPLICIT NONE
+
+! PPT !	
+integer :: filecount_PPT
 
 ! Dummy integer !
 INTEGER :: n, j, exno
@@ -54,6 +58,12 @@ END IF
 ! Neutrino spectra !	
 IF(nuspec_flag == 1) THEN 
 	CALL OPENNEUFILE
+END IF
+
+! ppt !
+filecount_PPT = 0
+IF (tracer_flag == 1) THEN
+	call outputPPT(filecount_PPT)
 END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -283,6 +293,15 @@ DO n = 1, total_time_step
 		
 	END IF
 
+	   ! Output tracer particle scheme
+   	   IF(tracer_flag == 1) THEN
+	      IF(ABS(global_time - output_PPTtime_last) >= output_PPTtime .or. output_file .eqv. .true.) then
+                 filecount_PPT = filecount_PPT + 1
+                 output_PPTtime_last = global_time
+	         CALL outputPPT(filecount_PPT)
+	      ENDIF
+	   ENDIF
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	! Reset !
@@ -350,6 +369,12 @@ DO n = 1, total_time_step
 		
 END DO
 
+! Output tracer particle scheme
+if(tracer_flag == 1) then
+   filecount_PPT = filecount_PPT + 1
+   call outputPPT(filecount_PPT)
+endif
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Special section for SNeIa !
@@ -358,7 +383,7 @@ If (flame_flag == 1) THEN
 END IF
 
 ! Write out parameters !
-CALL PARAMETER
+CALL PARAMETER(filecount_PPT)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -402,6 +427,11 @@ END IF
 If(nuspec_flag == 1) THEN
 	CALL DESTROYNU
 END IF
+
+! Tracer !
+if(tracer_flag == 1) then
+   call destroyPPT
+endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

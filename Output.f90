@@ -262,9 +262,12 @@ END SUBROUTINE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Write out the parameter for the ease of plotting graphs !				
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUBROUTINE PARAMETER
+SUBROUTINE PARAMETER(ppt_in)
 USE DEFINITION 
 IMPLICIT NONE
+
+! Input !
+INTEGER, INTENT(IN) :: ppt_in
 
 ! Open file !
 OPEN (UNIT = 721, FILE = './Outfile/Parameter.dat', STATUS = 'REPLACE')
@@ -272,6 +275,7 @@ OPEN (UNIT = 721, FILE = './Outfile/Parameter.dat', STATUS = 'REPLACE')
 ! WRITE !
 WRITE (721,*) total_length_1, dx1_ini
 WRITE (721,*) total_length_2, dx2_ini
+WRITE (721,*) ppt_in, ppt_in
 
 ! Close file!
 CLOSE (721)

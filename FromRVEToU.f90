@@ -168,11 +168,11 @@ IF(flame_flag == 1) THEN
 END IF
 
 ! Detonation level-set !
-!IF(deton_flag == 1) THEN
-!	DO j = -4, length_step_2 + 5
-!		scaG2(j) = u2 (iscaG2,j) / rho2(j)
-!	END DO
-!END IF
+IF(deton_flag == 1) THEN
+	DO j = -4, length_step_2 + 5
+		scaG2(j) = u2 (iscaG2,j) / rho2(j)
+	END DO
+END IF
 
 ! Convert the electron fraction !
 IF(etran_flag == 1) THEN

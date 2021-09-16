@@ -6,6 +6,7 @@ USE DEFINITION
 USE WENO_MODULE
 USE NUCLEAR_MODULE
 USE FLAME_MODULE
+USE PPT_MODULE
 IMPLICIT NONE
 
 ! Integer parameter !
@@ -20,6 +21,11 @@ REAL (DP) :: dx1_old, dx1_2, dx1_3, a1_3
 REAL (DP) :: dx2_old, dx2_2, dx2_3, a2_3
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Update the first half of particle tracer
+IF(tracer_flag == 1) THEN
+	call evolve_p_1st
+END IF
 
 ! Find the boundaries !
 IF(movinggridnm_flag == 1) THEN
@@ -89,6 +95,10 @@ CALL FROMRVETOU (u_new1, u_new2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+IF(tracer_flag == 1) THEN
+	call evolve_p_2nd
+END IF
+
 ! Second step in SSPRK(5,4) !
 CALL BACKUPCONS (u_new1, u_temp1, u_new2, u_temp2)
 CALL SPATIAL (u_new1, u_new2)
@@ -130,6 +140,10 @@ CALL UPDATE
 CALL FROMRVETOU (u_new1,u_new2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+IF(tracer_flag == 1) THEN
+	call evolve_p_3rd
+END IF
 
 ! Third step in SSPRK(5,4) !
 CALL BACKUPCONS (u_new1, u_temp1, u_new2, u_temp2)
@@ -177,6 +191,10 @@ CALL FROMRVETOU (u_new1,u_new2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+IF(tracer_flag == 1) THEN
+	call evolve_p_4th
+END IF
+
 ! Fourth step in SSPRK(5,4) !
 CALL BACKUPCONS (u_new1, u_temp1, u_new2, u_temp2)
 CALL SPATIAL (u_new1, u_new2)
@@ -214,6 +232,10 @@ CALL UPDATE
 CALL FROMRVETOU (u_new1,u_new2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+IF(tracer_flag == 1) THEN
+	call evolve_p_5th
+END IF
 
 ! Final step in SSPRK(5,4) !
 CALL BACKUPCONS (u_new1, u_temp1, u_new2, u_temp2)
@@ -366,6 +388,11 @@ CALL UPDATE
 ! Once again update the numerical value of u since we did some changes in density !
 CALL FROMRVETOU (u_new1, u_new2)
 CALL BACKUPCONS (u_new1, u_old1, u_new2, u_old2)
+
+! Prepare data for the output purpose
+IF (tracer_flag == 1) THEN
+	call evolve_p_final
+END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
