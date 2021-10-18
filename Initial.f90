@@ -14,7 +14,10 @@ USE PPT_MODULE
 IMPLICIT NONE
 
 ! Integer parameter !
-INTEGER :: j
+INTEGER :: j, k, i, n
+
+! Dummy !
+REAL (DP) :: eps_tmp, log10rho1_c, drho1c, check_m, check_m_last
 
 ! Backup parameter !
 n_backup = 0
@@ -156,7 +159,35 @@ If(test_model == 0) THEN
 	WRITE(*,*) 'Build a real star'
 	WRITE (*,*) 
 	If (DM_flag == 1) THEN
-		CALL GETRHO_2F
+
+		! Print out 
+		WRITE (*,*) 'Bisection method'
+
+		! Set step size !
+		log10rho1_c = log10(rho1_c)
+		drho1c = -0.1D0*log10rho1_c
+
+		! Bisection method !
+		DO n = 0, 100
+			rho1_c = 10.0D0**(log10rho1_c)
+			rho1_a = rho1_c*rhofac_1
+			CALL GETRHO_2F
+			CALL FINDMASS
+			eps_tmp = mass1/(mass1 + mass2)
+			check_m = eps_tmp - epsilon_dm
+			if(n == 0) then
+				if(check_m > 0.0D0) drho1c = -drho1c
+			endif
+			if(check_m_last * check_m < 0.0D0 .and. n /= 0) then
+				drho1c = -drho1c * 0.1D0
+			end if
+			log10rho1_c = log10rho1_c + drho1c
+			check_m_last = check_m
+			IF(ABS(check_m/epsilon_dm) < 1.0D-4) THEN
+				EXIT
+			END IF
+			WRITE (*,*) 'DM Ratio', eps_tmp
+		END DO
 	ELSE
 		CALL GETRHO_1F
 	END IF

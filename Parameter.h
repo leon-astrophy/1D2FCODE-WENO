@@ -65,7 +65,7 @@ INTEGER	:: length_step_part_2 = length_step_2
 REAL (DP) :: cfl = 2.0E-1_DP
 
 ! Physical time (dimensionless) that stop the program !
-REAL (DP) :: total_time = 4.0D5
+REAL (DP) :: total_time = 1.0D3
 
 ! Physical time (dimensionless) interval for each output !	
 REAL (DP), PARAMETER :: output_time = 1.0E2_DP
@@ -84,7 +84,7 @@ INTEGER, PARAMETER :: total_time_step = 1000000
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!			
 
 ! Initial central density of dark matter component, do not set to zero !
-REAL (DP), PARAMETER :: rho1_c = 3.0E8_DP*density
+REAL (DP) :: rho1_c = 3.0E8_DP*density
 
 ! Initial central density of normal matter component, do not set to zero !			
 REAL (DP), PARAMETER :: rho2_c = 3.0E9_DP*density
@@ -96,7 +96,7 @@ REAL (DP), PARAMETER :: rhofac_1 = 1.0E-5_DP
 REAL (DP), PARAMETER :: rhofac_2 = 1.0E-5_DP
 
 ! Density of the dark matter at the atmosphere, do not set to zero !
-REAL (DP) :: rho1_a = rho1_c * rhofac_1
+REAL (DP) :: rho1_a = 1.0D-10
 
 ! Density of the normal matter at the atmosphere, do not set to zero !			
 REAL (DP) :: rho2_a = rho2_c * rhofac_2
@@ -297,7 +297,7 @@ INTEGER, PARAMETER :: LF_flag = 1
 ! Flag for checking the simulation box !
 ! 1 = Only simulate the box area with matter !
 ! other meshes without matter is ignored !
-INTEGER :: checkstepdm_flag = 0
+INTEGER :: checkstepdm_flag = 1
 INTEGER :: checkstepnm_flag = 1
 
 ! Flag for turning on moving-grid !
@@ -305,11 +305,11 @@ INTEGER :: movinggriddm_flag = 0
 INTEGER :: movinggridnm_flag = 0
 
 ! Flag for finding the moving-grid !
-INTEGER, PARAMETER :: found_movinggriddm_flag = 0
+INTEGER, PARAMETER :: found_movinggriddm_flag = 1
 INTEGER, PARAMETER :: found_movinggridnm_flag = 1
 
 ! Flag for fixing the atmoshpere !
-INTEGER, PARAMETER :: fixrhodm_flag = 0
+INTEGER, PARAMETER :: fixrhodm_flag = 1
 INTEGER, PARAMETER :: fixrhonm_flag = 1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -336,13 +336,16 @@ INTEGER, PARAMETER :: test_model = 0
 
 ! The presence of dark matter component !
 ! 1 = presence, 0 = absent !
-INTEGER, PARAMETER ::  DM_flag = 0
+INTEGER, PARAMETER ::  DM_flag = 1
 
 ! Whether dark matter component are movable !
 ! 1 = movable, 0 = stationary !
 ! CAUTION - If you set the absent of DM !
 ! MAKE SURE to set this flag to 0 !
-INTEGER, PARAMETER ::  RUNDM_flag = 0
+INTEGER, PARAMETER ::  RUNDM_flag = 1
+
+! Target DM fraction !
+REAL (DP), PARAMETER :: epsilon_dm = 0.05D0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control the levelset function for DM and NM !
